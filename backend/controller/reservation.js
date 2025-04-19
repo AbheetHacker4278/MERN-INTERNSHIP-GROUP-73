@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User.js";
 
-// Middleware to check if user is authenticated
+// Middleware to check if user is authenticate
 export const isAuthenticated = async (req, res, next) => {
   try {
     const { token } = req.cookies;
