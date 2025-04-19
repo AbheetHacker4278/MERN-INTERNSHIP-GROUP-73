@@ -1,15 +1,17 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend for the project",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "dev": "nodemon backend/app.js",
     "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend",
-    "start": "nodemon backend/app.js"
+    "start": "nodemon backend/app.js",
+    "server": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Your Name",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -19,7 +21,11 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.2",
-    "node": "^16.20.0",
-    "validator": "^13.11.0"
+    "node": "^23.11.0",
+    "validator": "^13.11.0",
+    "vite": "^6.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
   }
 }
