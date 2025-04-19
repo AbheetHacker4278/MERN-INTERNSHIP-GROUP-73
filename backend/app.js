@@ -42,5 +42,9 @@ app.get('*' , (req , res) => {
 dbConnection();
 
 app.use(errorMiddleware);
+app.listen(process.env.PORT, ()=>{
+  console.log(`SERVER HAS STARTED AT PORT ${process.env.PORT || 4000}`);
+})
+
 
 export default app;
