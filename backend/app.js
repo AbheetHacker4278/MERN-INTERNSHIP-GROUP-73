@@ -6,6 +6,7 @@ import reservationRouter from "./routes/reservationRoute.js";
 import { dbConnection } from "./database/dbConnection.js";
 import cookieParser from "cookie-parser";
 import userRoutes from "./routes/user.js";
+import path from "path"
 
 const app = express();
 dotenv.config({ path: "./config.env" });
@@ -17,6 +18,9 @@ app.use(
     credentials: true,
   })
 );
+
+const _dirname = path.resolve();
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -29,6 +33,11 @@ app.get("/", (req, res, next)=>{return res.status(200).json({
   success: true,
   message: "HELLO WORLD AGAIN"
 })})
+
+app.use(express.static(path.join(_dirname , "/frontend/dist")))
+app.get('*' , (req , res) => {
+  res.sendFile(path.resolve(_dirname , "frontend" , "dist" , "index.html"));
+});
 
 dbConnection();
 
