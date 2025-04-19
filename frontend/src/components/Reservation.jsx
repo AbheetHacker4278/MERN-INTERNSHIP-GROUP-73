@@ -41,7 +41,7 @@ const Reservation = () => {
 
   const checkAuthStatus = async () => {
     try {
-      const { data } = await axios.get("http://localhost:4000/api/me", {
+      const { data } = await axios.get("https://mern-internship-group-73-1.onrender.com/api/me", {
         withCredentials: true,
       });
       if (data.success) {
@@ -59,7 +59,7 @@ const Reservation = () => {
   const fetchUserReservations = async () => {
     setIsLoading(true);
     try {
-      const { data } = await axios.get("http://localhost:4000/api/reservations", {
+      const { data } = await axios.get("https://mern-internship-group-73-1.onrender.com/api/reservations", {
         withCredentials: true,
       });
       console.log("Reservations data:", data); // Debug log
@@ -90,7 +90,7 @@ const Reservation = () => {
   
       setIsLoading(true);
       const { data } = await axios.delete(
-        `http://localhost:4000/api/reservations/${reservationToCancel}`,
+        `https://mern-internship-group-73-1.onrender.com/api/reservations/${reservationToCancel}`,
         { 
           withCredentials: true,
           headers: {
@@ -149,7 +149,7 @@ const Reservation = () => {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:4000/api/v1/reservation/send",
+        "https://mern-internship-group-73-1.onrender.com/api/v1/reservation/send",
         { firstName, lastName, email, phone, date, time },
         { withCredentials: true }
       );
@@ -172,7 +172,7 @@ const Reservation = () => {
     e.preventDefault();
     try {
       const { data } = await axios.post(
-        "http://localhost:4000/api/login",
+        "https://mern-internship-group-73-1.onrender.com/api/login",
         { email: username, password },
         { withCredentials: true }
       );
@@ -192,7 +192,7 @@ const Reservation = () => {
     }
     try {
       const { data } = await axios.post(
-        "http://localhost:4000/api/signup",
+        "https://mern-internship-group-73-1.onrender.com/api/signup",
         { name: username.split('@')[0], email: username, password },
         { withCredentials: true }
       );
@@ -213,7 +213,7 @@ const Reservation = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:4000/api/logout", { withCredentials: true });
+      await axios.get("https://mern-internship-group-73-1.onrender.com/api/logout", { withCredentials: true });
       toast.success("Logged out successfully");
       setIsAuthenticated(false);
       setUserData(null);

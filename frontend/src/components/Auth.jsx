@@ -27,7 +27,7 @@ export const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:4000/api/login", formData, {
+      const response = await axios.post("https://mern-internship-group-73-1.onrender.com/api/login", formData, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -125,7 +125,7 @@ export const Signup = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:4000/api/signup",
+        "https://mern-internship-group-73-1.onrender.com/api/signup",
         {
           name: formData.name,
           email: formData.email,
