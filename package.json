@@ -6,7 +6,6 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon backend/server.js",
-    "prebuild": "npm install -g vite",
     "build" : "npm install && npm install --prefix frontend && npm run build --prefix frontend",
     "start": "nodemon backend/server.js"
   },
