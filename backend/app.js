@@ -9,6 +9,7 @@ import userRoutes from "./routes/user.js";
 import path from "path"
 
 const app = express();
+const _dirname = path.resolve();
 dotenv.config({ path: "./config.env" });
 
 app.use(
@@ -19,7 +20,6 @@ app.use(
   })
 );
 
-const _dirname = path.resolve();
 
 app.use(express.json());
 app.use(cookieParser());
