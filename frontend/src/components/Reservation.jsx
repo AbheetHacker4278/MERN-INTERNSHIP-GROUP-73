@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { HiOutlineArrowNarrowRight } from "react-icons/hi";
+import { FaUserCircle } from "react-icons/fa";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { CalendarIcon, ClockIcon, PhoneIcon, AtSymbolIcon, UserIcon, LogOutIcon, CalendarDaysIcon, XIcon, CheckIcon, XCircleIcon } from "@heroicons/react/outline";
+import { useNavigate } from "react-router-dom";
 
 const Reservation = () => {
   // Form states
@@ -61,6 +62,7 @@ const Reservation = () => {
       const { data } = await axios.get("https://mern-internship-group-73-1.onrender.com/api/reservations", {
         withCredentials: true,
       });
+      console.log("Reservations data:", data); // Debug log
       if (data.success) setUserReservations(data.reservations);
     } catch (error) {
       toast.error("Failed to load reservations");
@@ -86,7 +88,7 @@ const Reservation = () => {
         )
       );
   
-      setIsCancelling(true);
+      setIsLoading(true);
       const { data } = await axios.delete(
         `https://mern-internship-group-73-1.onrender.com/api/reservations/${reservationToCancel}`,
         { 
@@ -122,9 +124,12 @@ const Reservation = () => {
         "Cancellation failed. Please try again."
       );
     } finally {
-      setIsCancelling(false);
+      setIsLoading(false);
       setShowCancelConfirm(false);
       setReservationToCancel(null);
+      setIsCancelling(true);
+// ... then in finally:
+      setIsCancelling(false);
     }
   };
 
@@ -237,432 +242,552 @@ const Reservation = () => {
     setShowReservations(!showReservations);
   };
 
-  const getStatusBadgeClass = (status) => {
-    switch(status.toLowerCase()) {
-      case 'confirmed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'canceled':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Header with Auth Controls */}
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Make a Reservation</h2>
-          
+    <section className="reservation" id="reservation">
+      <div className="container">
+        {/* User Profile Dropdown */}
+        <div className="flex justify-end p-4 relative">
           {isAuthenticated ? (
             <div className="relative">
-              <button 
+              <div
+                className="cursor-pointer bg-white rounded-full p-1 shadow-md flex items-center justify-center relative"
                 onClick={toggleProfileDropdown}
-                className="flex items-center px-4 py-2 rounded-full bg-white shadow-sm hover:shadow-md transition-shadow border border-gray-200"
               >
-                <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white mr-2">
-                  {userData?.name?.charAt(0).toUpperCase() || userData?.email?.charAt(0).toUpperCase()}
-                </div>
-                <span className="font-medium text-gray-700">{userData?.name || userData?.email?.split('@')[0]}</span>
-              </button>
+                <FaUserCircle className="text-yellow-500" size={30} />
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+              </div>
 
               {showProfileDropdown && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-50 overflow-hidden">
-                  <div className="p-4 border-b border-gray-100">
-                    <p className="font-medium text-gray-800">{userData?.name || userData?.email?.split('@')[0]}</p>
-                    <p className="text-sm text-gray-500 truncate">{userData?.email}</p>
+                <div className="absolute top-12 right-0 bg-white rounded-lg shadow-lg w-64 z-50 overflow-hidden border border-gray-200">
+                  <div className="p-4 flex items-center bg-gray-50 border-b border-gray-200">
+                    <FaUserCircle className="text-gray-700" size={40} />
+                    <div className="ml-3 overflow-hidden">
+                      <p className="font-bold text-gray-800">{userData?.name || userData?.email.split('@')[0]}</p>
+                      <p className="text-sm text-gray-500 truncate">{userData?.email}</p>
+                    </div>
                   </div>
-                  
-                  <div className="py-1">
-                    <button 
-                      onClick={toggleReservations}
-                      className="flex items-center w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50"
-                    >
-                      <CalendarDaysIcon className="h-5 w-5 mr-2 text-gray-500" />
-                      {showReservations ? "Hide" : "View"} My Reservations
-                    </button>
-                    
-                    <button 
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50"
-                    >
-                      <LogOutIcon className="h-5 w-5 mr-2 text-gray-500" />
-                      Logout
-                    </button>
-                  </div>
+
+                  <button
+                    className="w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-700 transition-colors border-b border-gray-200"
+                    onClick={toggleReservations}
+                  >
+                    {showReservations ? "Hide" : "View"} My Reservations
+                  </button>
+
+                  <button
+                    className="w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-700 transition-colors"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
                 </div>
               )}
             </div>
           ) : (
             <button
+              className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded transition-colors"
               onClick={() => setShowAuthModal(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              <UserIcon className="h-5 w-5 mr-2" />
-              Sign In / Register
+              Login / Signup
             </button>
           )}
         </div>
 
-        {/* Main Content Area */}
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Reservation Form */}
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <div className="mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Book Your Table</h3>
-              <p className="text-gray-600">Please fill in the form below to reserve your table</p>
-            </div>
-
-            {!isAuthenticated && (
-              <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100 flex items-center">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <UserIcon className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-blue-800">Please sign in to make a reservation</p>
-                  <button 
-                    onClick={() => setShowAuthModal(true)}
-                    className="text-blue-600 font-medium hover:underline mt-1"
-                  >
-                    Sign in or create an account
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {isAuthenticated && (
-              <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-100 flex items-center">
-                <div className="bg-green-100 p-2 rounded-full mr-3">
-                  <CheckIcon className="h-5 w-5 text-green-600" />
-                </div>
-                <p className="text-green-800">
-                  Signed in as <span className="font-medium">{userData?.name || userData?.email?.split('@')[0]}</span>
-                </p>
-              </div>
-            )}
-
-            <form className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    disabled={!isAuthenticated}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-100"
-                    placeholder="First Name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    disabled={!isAuthenticated}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-100"
-                    placeholder="Last Name"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    <div className="flex items-center">
-                      <CalendarIcon className="h-4 w-4 mr-1 text-gray-500" />
-                      Date
-                    </div>
-                  </label>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    disabled={!isAuthenticated}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    <div className="flex items-center">
-                      <ClockIcon className="h-4 w-4 mr-1 text-gray-500" />
-                      Time
-                    </div>
-                  </label>
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    disabled={!isAuthenticated}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-100"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <div className="flex items-center">
-                    <AtSymbolIcon className="h-4 w-4 mr-1 text-gray-500" />
-                    Email
-                  </div>
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={!isAuthenticated}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-100"
-                  placeholder="your@email.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <div className="flex items-center">
-                    <PhoneIcon className="h-4 w-4 mr-1 text-gray-500" />
-                    Phone Number
-                  </div>
-                </label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  disabled={!isAuthenticated}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-100"
-                  placeholder="Phone Number"
-                />
-              </div>
-
-              <button
-                type="submit"
-                onClick={handleReservation}
-                disabled={!isAuthenticated}
-                className={`w-full py-3 px-6 flex items-center justify-center rounded-lg font-medium transition-colors ${
-                  isAuthenticated
-                    ? "bg-blue-600 hover:bg-blue-700 text-white"
-                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                }`}
-              >
-                {isAuthenticated ? "Book Table" : "Sign in to Book"}
-              </button>
-            </form>
-          </div>
-
-          {/* Image or My Reservations */}
-          <div className="relative">
-            {showReservations ? (
-              <div className="bg-white rounded-xl shadow-sm overflow-hidden h-full">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-gray-800">My Reservations</h3>
-                  <button
-                    onClick={toggleReservations}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <XIcon className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <div className="overflow-y-auto" style={{ maxHeight: "500px" }}>
-                  {isLoading ? (
-                    <div className="p-8 flex justify-center">
-                      <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-300 border-t-blue-600"></div>
-                    </div>
-                  ) : userReservations.length > 0 ? (
-                    <div className="divide-y divide-gray-100">
-                      {userReservations.map((reservation) => (
-                        <div key={reservation._id} className="p-4 hover:bg-gray-50 transition-colors">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <h4 className="font-medium text-gray-900">
-                                {reservation.firstName} {reservation.lastName}
-                              </h4>
-                              <p className="text-sm text-gray-500">{formatDate(reservation.date)} at {reservation.time}</p>
-                            </div>
-                            <span 
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(reservation.status)}`}
-                            >
-                              {reservation.status}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
-                            <div className="flex items-center">
-                              <PhoneIcon className="h-4 w-4 mr-1 text-gray-400" />
-                              {reservation.phone}
-                            </div>
-                            <div className="flex items-center">
-                              <AtSymbolIcon className="h-4 w-4 mr-1 text-gray-400" />
-                              <span className="truncate">{reservation.email}</span>
-                            </div>
-                          </div>
-
-                          {reservation.status === 'canceled' && reservation.updatedAt && (
-                            <p className="text-xs text-gray-500 italic">
-                              Cancelled on: {new Date(reservation.updatedAt).toLocaleString()}
-                            </p>
-                          )}
-
-                          {reservation.status !== 'canceled' && (
-                            <button
-                              onClick={() => handleCancelClick(reservation._id)}
-                              disabled={isCancelling && reservationToCancel === reservation._id}
-                              className="text-sm flex items-center text-red-600 hover:text-red-800 font-medium"
-                            >
-                              <XCircleIcon className="h-4 w-4 mr-1" />
-                              {isCancelling && reservationToCancel === reservation._id ? (
-                                <span className="flex items-center">
-                                  <div className="animate-spin h-3 w-3 mr-2 border-2 border-red-600 border-t-transparent rounded-full"></div>
-                                  Cancelling...
-                                </span>
-                              ) : (
-                                "Cancel Reservation"
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-8 text-center">
-                      <div className="bg-gray-100 rounded-full p-3 inline-flex justify-center mb-4">
-                        <CalendarDaysIcon className="h-8 w-8 text-gray-500" />
-                      </div>
-                      <h4 className="text-lg font-medium text-gray-900 mb-1">No reservations yet</h4>
-                      <p className="text-gray-600">Book your first table to get started</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="h-full rounded-xl overflow-hidden shadow-sm relative">
-                <img
-                  src="/reservation.png"
-                  alt="Restaurant ambiance"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-6">
-                  <h3 className="text-white text-xl font-bold mb-2">Reserve Your Experience</h3>
-                  <p className="text-white/90 mb-4">Enjoy exceptional dining in our elegant atmosphere</p>
-                  {isAuthenticated && (
-                    <button 
-                      onClick={toggleReservations}
-                      className="bg-white text-blue-600 py-2 px-4 rounded-lg font-medium hover:bg-gray-100 transition-colors inline-flex items-center"
-                    >
-                      <CalendarDaysIcon className="h-5 w-5 mr-2" />
-                      View My Reservations
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Authentication Modal */}
+        {/* Auth Modal */}
         {showAuthModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    {isLogin ? "Sign In" : "Create Account"}
-                  </h2>
-                  <button 
-                    onClick={() => setShowAuthModal(false)}
-                    className="p-1 rounded-full hover:bg-gray-100"
-                  >
-                    <XIcon className="h-6 w-6 text-gray-500" />
-                  </button>
+          <div className="auth-modal-overlay">
+            <div className="auth-modal">
+              <button
+                className="close-modal"
+                onClick={() => setShowAuthModal(false)}
+              >
+                &times;
+              </button>
+              <h2>{isLogin ? "Login" : "Sign Up"}</h2>
+
+              <form onSubmit={isLogin ? handleLogin : handleSignup}>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
                 </div>
-                
-                <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input
-                      type="email"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+
+                <div className="form-group">
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {!isLogin && (
+                  <div className="form-group">
+                    <label>Confirm Password</label>
                     <input
                       type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                     />
                   </div>
-                  
-                  {!isLogin && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    </div>
-                  )}
-                  
-                  <button
-                    type="submit"
-                    className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                  >
-                    {isLogin ? "Sign In" : "Create Account"}
-                  </button>
-                </form>
-                
-                <div className="mt-6 text-center text-sm text-gray-600">
-                  {isLogin ? "Don't have an account?" : "Already have an account?"}
-                  <button
-                    type="button"
-                    onClick={toggleAuthMode}
-                    className="ml-1 text-blue-600 font-medium hover:underline"
-                  >
-                    {isLogin ? "Sign Up" : "Sign In"}
-                  </button>
-                </div>
-              </div>
+                )}
+
+                <button type="submit" className="auth-submit">
+                  {isLogin ? "Login" : "Sign Up"}
+                </button>
+              </form>
+
+              <p className="auth-toggle">
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                <button
+                  type="button"
+                  className="toggle-btn"
+                  onClick={toggleAuthMode}
+                >
+                  {isLogin ? "Sign Up" : "Login"}
+                </button>
+              </p>
             </div>
           </div>
         )}
 
         {/* Cancellation Confirmation Modal */}
         {showCancelConfirm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-3">Cancel Reservation</h3>
-              <p className="text-gray-600 mb-6">Are you sure you want to cancel this reservation? This action cannot be undone.</p>
-              
-              <div className="flex gap-3 justify-end">
+          <div className="confirmation-modal-overlay">
+            <div className="confirmation-modal">
+              <h3>Cancel Reservation</h3>
+              <p>Are you sure you want to cancel this reservation?</p>
+              <div className="modal-buttons">
                 <button
-                  onClick={() => setShowCancelConfirm(false)}
-                  className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Keep Reservation
-                </button>
-                <button
+                  className="confirm-btn"
                   onClick={confirmCancel}
-                  className="py-2 px-4 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
                 >
                   Yes, Cancel
+                </button>
+                <button
+                  className="cancel-btn"
+                  onClick={() => setShowCancelConfirm(false)}
+                >
+                  No, Keep It
                 </button>
               </div>
             </div>
           </div>
         )}
+
+        {/* User Reservations Section */}
+        {isAuthenticated && showReservations && (
+          <div className="user-reservations-container">
+            <div className="reservations-header">
+              <h2>My Reservations</h2>
+              <button onClick={toggleReservations} className="close-reservations">
+                &times;
+              </button>
+            </div>
+
+            {isLoading ? (
+              <div className="loading-spinner">Loading...</div>
+            ) : userReservations.length > 0 ? (
+              <div className="reservations-list">
+                {userReservations.map((reservation) => (
+                  <div key={reservation._id} className="reservation-card">
+                    <div className="reservation-header">
+                      <h3>{reservation.firstName} {reservation.lastName}</h3>
+                      <span className="reservation-date">{formatDate(reservation.date)}</span>
+                    </div>
+                    <div className="reservation-details">
+                      <p><strong>Time:</strong> {reservation.time}</p>
+                      <p><strong>Phone:</strong> {reservation.phone}</p>
+                      <p><strong>Email:</strong> {reservation.email}</p>
+                      <p>
+                        <strong>Status:</strong>
+                        <span className={`status-${reservation.status.toLowerCase()}`}>
+                          {reservation.status}
+                        </span>
+                      </p>
+                      {reservation.status === 'canceled' && reservation.updatedAt && (
+                        <p className="cancellation-time">
+                          Cancelled on: {new Date(reservation.updatedAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                    {reservation.status !== 'canceled' && (
+                      <button
+                        onClick={() => handleCancelClick(reservation._id)}
+                        className="cancel-reservation-btn"
+                        disabled={isCancelling && reservationToCancel === reservation._id}
+                      >
+                        {isCancelling && reservationToCancel === reservation._id ? (
+                          <span className="flex items-center justify-center">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Cancelling...
+                          </span>
+                        ) : (
+                          "Cancel Reservation"
+                        )}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-reservations">
+                <p>You don't have any reservations yet.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Reservation Form */}
+        <div className="banner">
+          <img src="/reservation.png" alt="res" />
+        </div>
+        <div className="banner">
+          <div className="reservation_form_box">
+            <h1>MAKE A RESERVATION</h1>
+            <p>For Further Questions, Please Call</p>
+            {!isAuthenticated && (
+              <div className="auth-required-notice">
+                <p>Please <button onClick={() => setShowAuthModal(true)}>login or signup</button> to make a reservation</p>
+              </div>
+            )}
+            {isAuthenticated && (
+              <div className="auth-success-notice">
+                <p>You are logged in as <strong>{userData?.name || userData?.email.split('@')[0]}</strong></p>
+              </div>
+            )}
+            <form>
+              <div>
+                <input
+                  type="text"
+                  placeholder="First Name *"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  disabled={!isAuthenticated}
+                />
+                <input
+                  type="text"
+                  placeholder="Last Name *"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  disabled={!isAuthenticated}
+                />
+              </div>
+              <div>
+                <input
+                  type="date"
+                  placeholder="Date *"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  disabled={!isAuthenticated}
+                />
+                <input
+                  type="time"
+                  placeholder="Time *"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  disabled={!isAuthenticated}
+                />
+              </div>
+              <div>
+                <input
+                  type="email"
+                  placeholder="Email *"
+                  className="email_tag"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={!isAuthenticated}
+                />
+                <input
+                  type="tel"
+                  placeholder="Phone *"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  disabled={!isAuthenticated}
+                />
+              </div>
+              <button
+                type="submit"
+                onClick={handleReservation}
+                className={!isAuthenticated ? "disabled-btn" : ""}
+                disabled={!isAuthenticated}
+              >
+                RESERVE NOW{" "}
+                <span>
+                  <HiOutlineArrowNarrowRight />
+                </span>
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
+
+      {/* CSS Styles */}
+      <style jsx>{`
+        .container {
+          position: relative;
+        }
+        
+        /* Auth Modal Styles */
+        .auth-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+        
+        .auth-modal {
+          background-color: white;
+          border-radius: 8px;
+          padding: 2rem;
+          width: 90%;
+          max-width: 400px;
+          position: relative;
+        }
+        
+        .close-modal {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: none;
+          border: none;
+          font-size: 1.5rem;
+          cursor: pointer;
+        }
+        
+        .form-group {
+          margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-weight: bold;
+        }
+        
+        .form-group input {
+          width: 100%;
+          padding: 0.5rem;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        }
+        
+        .auth-submit {
+          width: 100%;
+          background-color: #f8b400;
+          color: white;
+          border: none;
+          padding: 0.75rem;
+          border-radius: 4px;
+          font-weight: bold;
+          cursor: pointer;
+          margin-top: 1rem;
+        }
+        
+        .auth-toggle {
+          text-align: center;
+          margin-top: 1rem;
+        }
+        
+        .toggle-btn {
+          background: none;
+          border: none;
+          color: #f8b400;
+          cursor: pointer;
+          font-weight: bold;
+        }
+        
+        /* Notices */
+        .auth-required-notice {
+          background-color: #ffecb3;
+          padding: 1rem;
+          border-radius: 4px;
+          margin-bottom: 1rem;
+          text-align: center;
+        }
+        
+        .auth-success-notice {
+          background-color: #e8f5e9;
+          padding: 1rem;
+          border-radius: 4px;
+          margin-bottom: 1rem;
+          text-align: center;
+          border-left: 4px solid #4CAF50;
+        }
+        
+        .auth-required-notice button {
+          background: none;
+          border: none;
+          color: #f8b400;
+          cursor: pointer;
+          font-weight: bold;
+        }
+        
+        /* Reservations List */
+        .user-reservations-container {
+          background-color: white;
+          border-radius: 8px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          margin-bottom: 2rem;
+          overflow: hidden;
+        }
+        
+        .reservations-header {
+          background-color: #f8b400;
+          color: white;
+          padding: 1rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .close-reservations {
+          background: none;
+          border: none;
+          color: white;
+          font-size: 1.5rem;
+          cursor: pointer;
+        }
+        
+        .reservations-list {
+          max-height: 400px;
+          overflow-y: auto;
+          padding: 1rem;
+        }
+        
+        .reservation-card {
+          background-color: #f9f9f9;
+          border-radius: 4px;
+          padding: 1rem;
+          margin-bottom: 1rem;
+          border-left: 4px solid #f8b400;
+        }
+        
+        .reservation-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.5rem;
+        }
+        
+        .reservation-details p {
+          margin: 0.3rem 0;
+        }
+        
+        /* Status Styles */
+        .status-pending {
+          color: #ff9800;
+          font-weight: bold;
+          text-transform: capitalize;
+          margin-left: 5px;
+        }
+
+        .status-confirmed {
+          color: #4CAF50;
+          font-weight: bold;
+          text-transform: capitalize;
+          margin-left: 5px;
+        }
+
+        .status-canceled {
+          color: #f44336;
+          font-weight: bold;
+          text-transform: capitalize;
+          margin-left: 5px;
+          text-decoration: line-through;
+        }
+
+        .cancellation-time {
+          color: #888;
+          font-size: 0.9rem;
+          margin-top: 5px;
+          font-style: italic;
+        }
+        
+        /* Cancel Button */
+        .cancel-reservation-btn {
+          background-color: #ff4444;
+          color: white;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          margin-top: 0.5rem;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+        
+        .cancel-reservation-btn:hover {
+          background-color: #cc0000;
+        }
+        
+        /* Confirmation Modal */
+        .confirmation-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+        
+        .confirmation-modal {
+          background-color: white;
+          border-radius: 8px;
+          padding: 2rem;
+          width: 90%;
+          max-width: 400px;
+        }
+        
+        .modal-buttons {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 1rem;
+        }
+        
+        .confirm-btn {
+          background-color: #ff4444;
+          color: white;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+        
+        .modal-buttons .cancel-btn {
+          background-color: #f8b400;
+          color: white;
+        }
+        
+        /* Disabled State */
+        .disabled-btn {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        
+        input:disabled {
+          background-color: #f2f2f2;
+          cursor: not-allowed;
+        }
+      `}</style>
     </section>
   );
 };
