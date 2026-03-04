@@ -1,3 +1,28 @@
-# node_modules
-# config.env
-node_modules
+# Dependencies — never commit these
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Environment secrets — NEVER commit
+config.env
+.env
+.env.*
+
+# Build output
+frontend/dist/
+frontend/build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Debug / seed scripts output
+debugAdmin.js
