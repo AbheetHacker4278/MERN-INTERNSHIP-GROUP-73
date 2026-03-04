@@ -6,6 +6,7 @@ import reservationRouter from "./routes/reservationRoute.js";
 import { dbConnection } from "./database/dbConnection.js";
 import cookieParser from "cookie-parser";
 import userRoutes from "./routes/user.js";
+import adminRoutes from "./routes/adminRoute.js";
 import path from "path"
 
 const app = express();
@@ -14,7 +15,10 @@ dotenv.config({ path: "./config.env" });
 
 app.use(
   cors({
-    origin: ["https://mern-internship-group-73-1.onrender.com/"],
+    origin: [
+      "https://mern-internship-group-73-1.onrender.com",
+      "http://localhost:5173",
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   })
@@ -25,24 +29,27 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Routes
-app.use("/api", userRoutes);  // << This is key!
+app.use("/api", userRoutes);
+app.use("/api/admin", adminRoutes);
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/v1/reservation", reservationRouter);
-app.get("https://mern-internship-group-73-1.onrender.com/", (req, res, next)=>{return res.status(200).json({
-  success: true,
-  message: "HELLO WORLD AGAIN"
-})})
+app.get("https://mern-internship-group-73-1.onrender.com/", (req, res, next) => {
+  return res.status(200).json({
+    success: true,
+    message: "HELLO WORLD AGAIN"
+  })
+})
 
-app.use(express.static(path.join(_dirname , "/frontend/dist")))
-app.get('*' , (req , res) => {
-  res.sendFile(path.resolve(_dirname , "frontend" , "dist" , "index.html"));
+app.use(express.static(path.join(_dirname, "/frontend/dist")))
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(_dirname, "frontend", "dist", "index.html"));
 });
 
 dbConnection();
 
 app.use(errorMiddleware);
-app.listen(process.env.PORT, ()=>{
+app.listen(process.env.PORT, () => {
   console.log(`SERVER HAS STARTED AT PORT ${process.env.PORT || 4000}`);
 })
 

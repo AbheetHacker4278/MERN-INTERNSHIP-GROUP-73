@@ -41,7 +41,7 @@ const Reservation = () => {
 
   const checkAuthStatus = async () => {
     try {
-      const { data } = await axios.get("https://mern-internship-group-73-1.onrender.com/api/me", {
+      const { data } = await axios.get("/api/me", {
         withCredentials: true,
       });
       if (data.success) {
@@ -59,7 +59,7 @@ const Reservation = () => {
   const fetchUserReservations = async () => {
     setIsLoading(true);
     try {
-      const { data } = await axios.get("https://mern-internship-group-73-1.onrender.com/api/reservations", {
+      const { data } = await axios.get("/api/reservations", {
         withCredentials: true,
       });
       console.log("Reservations data:", data); // Debug log
@@ -87,40 +87,40 @@ const Reservation = () => {
             : res
         )
       );
-  
+
       setIsLoading(true);
       const { data } = await axios.delete(
-        `https://mern-internship-group-73-1.onrender.com/api/reservations/${reservationToCancel}`,
-        { 
+        `/api/reservations/${reservationToCancel}`,
+        {
           withCredentials: true,
           headers: {
             'Content-Type': 'application/json'
           }
         }
       );
-      
+
       toast.success(data.message);
       // Refresh data from server to ensure consistency
       await fetchUserReservations();
     } catch (error) {
       console.error('Cancellation error:', error.response?.data || error.message);
-      
+
       // Revert optimistic update on error
       setUserReservations(prev =>
         prev.map(res =>
           res._id === reservationToCancel
-            ? { 
-                ...res, 
-                status: error.response?.data?.originalStatus || 'confirmed',
-                updatedAt: res.updatedAt // Keep original updatedAt
-              }
+            ? {
+              ...res,
+              status: error.response?.data?.originalStatus || 'confirmed',
+              updatedAt: res.updatedAt // Keep original updatedAt
+            }
             : res
         )
       );
-      
+
       toast.error(
-        error.response?.data?.message || 
-        error.message || 
+        error.response?.data?.message ||
+        error.message ||
         "Cancellation failed. Please try again."
       );
     } finally {
@@ -128,7 +128,7 @@ const Reservation = () => {
       setShowCancelConfirm(false);
       setReservationToCancel(null);
       setIsCancelling(true);
-// ... then in finally:
+      // ... then in finally:
       setIsCancelling(false);
     }
   };
@@ -149,7 +149,7 @@ const Reservation = () => {
 
     try {
       const { data } = await axios.post(
-        "https://mern-internship-group-73-1.onrender.com/api/v1/reservation/send",
+        "/api/v1/reservation/send",
         { firstName, lastName, email, phone, date, time },
         { withCredentials: true }
       );
@@ -172,7 +172,7 @@ const Reservation = () => {
     e.preventDefault();
     try {
       const { data } = await axios.post(
-        "https://mern-internship-group-73-1.onrender.com/api/login",
+        "/api/login",
         { email: username, password },
         { withCredentials: true }
       );
@@ -192,7 +192,7 @@ const Reservation = () => {
     }
     try {
       const { data } = await axios.post(
-        "https://mern-internship-group-73-1.onrender.com/api/signup",
+        "/api/signup",
         { name: username.split('@')[0], email: username, password },
         { withCredentials: true }
       );
@@ -213,7 +213,7 @@ const Reservation = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get("https://mern-internship-group-73-1.onrender.com/api/logout", { withCredentials: true });
+      await axios.get("/api/logout", { withCredentials: true });
       toast.success("Logged out successfully");
       setIsAuthenticated(false);
       setUserData(null);
@@ -244,548 +244,704 @@ const Reservation = () => {
 
   return (
     <section className="reservation" id="reservation">
-      <div className="container">
-        {/* User Profile Dropdown */}
-        <div className="flex justify-end p-4 relative">
-          {isAuthenticated ? (
-            <div className="relative">
-              <div
-                className="cursor-pointer bg-white rounded-full p-1 shadow-md flex items-center justify-center relative"
-                onClick={toggleProfileDropdown}
-              >
-                <FaUserCircle className="text-yellow-500" size={30} />
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+
+      {/* ── My Reservations Slide-Panel ── */}
+      {isAuthenticated && showReservations && (
+        <div className="res-panel-overlay" onClick={toggleReservations}>
+          <div className="res-panel" onClick={e => e.stopPropagation()}>
+            <div className="res-panel-header">
+              <div>
+                <h2>📋 My Reservations</h2>
+                <p>{userReservations.length} booking{userReservations.length !== 1 ? "s" : ""}</p>
               </div>
+              <button className="res-panel-close" onClick={toggleReservations}>✕</button>
+            </div>
 
-              {showProfileDropdown && (
-                <div className="absolute top-12 right-0 bg-white rounded-lg shadow-lg w-64 z-50 overflow-hidden border border-gray-200">
-                  <div className="p-4 flex items-center bg-gray-50 border-b border-gray-200">
-                    <FaUserCircle className="text-gray-700" size={40} />
-                    <div className="ml-3 overflow-hidden">
-                      <p className="font-bold text-gray-800">{userData?.name || userData?.email.split('@')[0]}</p>
-                      <p className="text-sm text-gray-500 truncate">{userData?.email}</p>
-                    </div>
-                  </div>
-
-                  <button
-                    className="w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-700 transition-colors border-b border-gray-200"
-                    onClick={toggleReservations}
-                  >
-                    {showReservations ? "Hide" : "View"} My Reservations
-                  </button>
-
-                  <button
-                    className="w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-700 transition-colors"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </button>
+            <div className="res-panel-body">
+              {isLoading ? (
+                <div className="res-spinner-wrap">
+                  <div className="res-spinner" />
+                  <span>Loading reservations…</span>
                 </div>
+              ) : userReservations.length === 0 ? (
+                <div className="res-empty">
+                  <div className="res-empty-icon">🍽️</div>
+                  <p>No reservations yet.</p>
+                  <span>Book your first table below!</span>
+                </div>
+              ) : (
+                userReservations.map((r) => (
+                  <div key={r._id} className={`res-card res-card--${r.status}`}>
+                    <div className="res-card-top">
+                      <div>
+                        <strong>{r.firstName} {r.lastName}</strong>
+                        <span className={`res-status res-status--${r.status}`}>
+                          {r.status === "pending" && "⏳"}
+                          {r.status === "confirmed" && "✅"}
+                          {r.status === "completed" && "🎉"}
+                          {r.status === "canceled" && "❌"}
+                          {" "}{r.status}
+                        </span>
+                      </div>
+                      <span className="res-card-date">{formatDate(r.date)}</span>
+                    </div>
+                    <div className="res-card-details">
+                      <span>🕐 {r.time}</span>
+                      <span>📞 {r.phone}</span>
+                      <span>✉️ {r.email}</span>
+                    </div>
+                    {r.status === "canceled" && r.updatedAt && (
+                      <p className="res-card-cancelled-on">
+                        Cancelled: {new Date(r.updatedAt).toLocaleString()}
+                      </p>
+                    )}
+                    {r.status !== "canceled" && (
+                      <button
+                        className="res-cancel-btn"
+                        onClick={() => handleCancelClick(r._id)}
+                        disabled={isCancelling && reservationToCancel === r._id}
+                      >
+                        {isCancelling && reservationToCancel === r._id
+                          ? "Cancelling…"
+                          : "Cancel Reservation"}
+                      </button>
+                    )}
+                  </div>
+                ))
               )}
             </div>
-          ) : (
-            <button
-              className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded transition-colors"
-              onClick={() => setShowAuthModal(true)}
-            >
-              Login / Signup
+          </div>
+        </div>
+      )}
+
+      {/* ── Auth Modal ── */}
+      {showAuthModal && (
+        <div className="rmodal-overlay" onClick={() => setShowAuthModal(false)}>
+          <div className="rmodal" onClick={e => e.stopPropagation()}>
+            <button className="rmodal-close" onClick={() => setShowAuthModal(false)}>✕</button>
+            <div className="rmodal-icon">🍽️</div>
+            <h2>{isLogin ? "Welcome Back" : "Create Account"}</h2>
+            <p>{isLogin ? "Login to book your table" : "Sign up to get started"}</p>
+
+            <form onSubmit={isLogin ? handleLogin : handleSignup} className="rmodal-form">
+              <div className="rmodal-field">
+                <label>Email</label>
+                <input type="email" value={username} onChange={e => setUsername(e.target.value)} required placeholder="your@email.com" />
+              </div>
+              <div className="rmodal-field">
+                <label>Password</label>
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
+              </div>
+              {!isLogin && (
+                <div className="rmodal-field">
+                  <label>Confirm Password</label>
+                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required placeholder="••••••••" />
+                </div>
+              )}
+              <button type="submit" className="rmodal-submit">
+                {isLogin ? "Login" : "Sign Up"}
+              </button>
+            </form>
+
+            <p className="rmodal-toggle">
+              {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+              <button type="button" onClick={toggleAuthMode}>{isLogin ? "Sign Up" : "Login"}</button>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Cancel Confirm Modal ── */}
+      {showCancelConfirm && (
+        <div className="rmodal-overlay" onClick={() => setShowCancelConfirm(false)}>
+          <div className="rmodal rmodal--sm" onClick={e => e.stopPropagation()}>
+            <div className="rmodal-icon">⚠️</div>
+            <h2>Cancel Reservation?</h2>
+            <p>This action cannot be undone.</p>
+            <div className="rmodal-actions">
+              <button className="rmodal-danger" onClick={confirmCancel}>Yes, Cancel It</button>
+              <button className="rmodal-ghost" onClick={() => setShowCancelConfirm(false)}>Keep It</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════
+          MAIN RESERVATION SECTION
+      ══════════════════════════════════════ */}
+      <div className="res-hero">
+
+        {/* Left — Info Panel */}
+        <div className="res-info">
+          <div className="res-info-badge">Book a Table</div>
+          <h1 className="res-info-title">
+            Reserve Your<br />
+            <span>Perfect Evening</span>
+          </h1>
+          <p className="res-info-desc">
+            Experience fine dining at its best. Let us host you for an unforgettable evening of great food, ambiance, and service.
+          </p>
+
+          <div className="res-info-features">
+            {[
+              { icon: "🕐", text: "Flexible Timings" },
+              { icon: "🍷", text: "Premium Dining" },
+              { icon: "👨‍🍳", text: "Expert Chefs" },
+              { icon: "✨", text: "Special Occasions" },
+            ].map(f => (
+              <div key={f.text} className="res-feature">
+                <span className="res-feature-icon">{f.icon}</span>
+                <span>{f.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {isAuthenticated && userData?.role !== "admin" && (
+            <button className="res-view-btn" onClick={toggleReservations}>
+              📋 View My Reservations
+              {userReservations.length > 0 && (
+                <span className="res-view-badge">{userReservations.length}</span>
+              )}
             </button>
           )}
         </div>
 
-        {/* Auth Modal */}
-        {showAuthModal && (
-          <div className="auth-modal-overlay">
-            <div className="auth-modal">
-              <button
-                className="close-modal"
-                onClick={() => setShowAuthModal(false)}
-              >
-                &times;
-              </button>
-              <h2>{isLogin ? "Login" : "Sign Up"}</h2>
+        {/* Right — Form / Admin Panel */}
+        <div className="res-form-wrap">
 
-              <form onSubmit={isLogin ? handleLogin : handleSignup}>
-                <div className="form-group">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                  />
+          {userData?.role === "admin" ? (
+            /* ── Admin View ── */
+            <div className="res-form-card res-admin-card">
+              <div className="res-admin-icon">⚙️</div>
+              <h2>Admin Mode</h2>
+              <p>Admins manage reservations — they don't make them.</p>
+              <div className="res-admin-btns">
+                <button className="res-admin-primary" onClick={() => navigate("/admin?tab=reservations")}>
+                  📋 All Reservations
+                </button>
+                <button className="res-admin-secondary" onClick={() => navigate("/admin")}>
+                  ⚙️ Dashboard
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ── User Booking Form ── */
+            <div className="res-form-card">
+              <div className="res-form-header">
+                <h2>Make a Reservation</h2>
+                <p>Fill in your details below</p>
+              </div>
+
+              {/* Login notice */}
+              {!isAuthenticated && (
+                <div className="res-notice res-notice--warn">
+                  <span>🔒</span>
+                  <span>Please <button onClick={() => setShowAuthModal(true)}>login or signup</button> to reserve a table</span>
                 </div>
+              )}
 
-                <div className="form-group">
-                  <label>Password</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+              {/* Logged-in notice */}
+              {isAuthenticated && (
+                <div className="res-notice res-notice--ok">
+                  <span>✅</span>
+                  <span>Logged in as <strong>{userData?.name || userData?.email?.split("@")[0]}</strong></span>
                 </div>
+              )}
 
-                {!isLogin && (
-                  <div className="form-group">
-                    <label>Confirm Password</label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                    />
+              <form className="res-form" onSubmit={handleReservation}>
+                <div className="res-form-row">
+                  <div className="res-field">
+                    <label>First Name</label>
+                    <input type="text" placeholder="John" value={firstName}
+                      onChange={e => setFirstName(e.target.value)} disabled={!isAuthenticated} />
                   </div>
-                )}
+                  <div className="res-field">
+                    <label>Last Name</label>
+                    <input type="text" placeholder="Doe" value={lastName}
+                      onChange={e => setLastName(e.target.value)} disabled={!isAuthenticated} />
+                  </div>
+                </div>
 
-                <button type="submit" className="auth-submit">
-                  {isLogin ? "Login" : "Sign Up"}
+                <div className="res-form-row">
+                  <div className="res-field">
+                    <label>Date</label>
+                    <input type="date" value={date}
+                      onChange={e => setDate(e.target.value)} disabled={!isAuthenticated} />
+                  </div>
+                  <div className="res-field">
+                    <label>Time</label>
+                    <input type="time" value={time}
+                      onChange={e => setTime(e.target.value)} disabled={!isAuthenticated} />
+                  </div>
+                </div>
+
+                <div className="res-form-row">
+                  <div className="res-field">
+                    <label>Email</label>
+                    <input type="email" placeholder="you@email.com" value={email}
+                      onChange={e => setEmail(e.target.value)} disabled={!isAuthenticated} />
+                  </div>
+                  <div className="res-field">
+                    <label>Phone</label>
+                    <input type="tel" placeholder="+91 00000 00000" value={phone}
+                      onChange={e => setPhone(e.target.value)} disabled={!isAuthenticated} />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className={`res-submit-btn ${!isAuthenticated ? "res-submit-btn--disabled" : ""}`}
+                  disabled={!isAuthenticated}
+                >
+                  Reserve Now <HiOutlineArrowNarrowRight />
                 </button>
               </form>
-
-              <p className="auth-toggle">
-                {isLogin ? "Don't have an account? " : "Already have an account? "}
-                <button
-                  type="button"
-                  className="toggle-btn"
-                  onClick={toggleAuthMode}
-                >
-                  {isLogin ? "Sign Up" : "Login"}
-                </button>
-              </p>
             </div>
-          </div>
-        )}
-
-        {/* Cancellation Confirmation Modal */}
-        {showCancelConfirm && (
-          <div className="confirmation-modal-overlay">
-            <div className="confirmation-modal">
-              <h3>Cancel Reservation</h3>
-              <p>Are you sure you want to cancel this reservation?</p>
-              <div className="modal-buttons">
-                <button
-                  className="confirm-btn"
-                  onClick={confirmCancel}
-                >
-                  Yes, Cancel
-                </button>
-                <button
-                  className="cancel-btn"
-                  onClick={() => setShowCancelConfirm(false)}
-                >
-                  No, Keep It
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* User Reservations Section */}
-        {isAuthenticated && showReservations && (
-          <div className="user-reservations-container">
-            <div className="reservations-header">
-              <h2>My Reservations</h2>
-              <button onClick={toggleReservations} className="close-reservations">
-                &times;
-              </button>
-            </div>
-
-            {isLoading ? (
-              <div className="loading-spinner">Loading...</div>
-            ) : userReservations.length > 0 ? (
-              <div className="reservations-list">
-                {userReservations.map((reservation) => (
-                  <div key={reservation._id} className="reservation-card">
-                    <div className="reservation-header">
-                      <h3>{reservation.firstName} {reservation.lastName}</h3>
-                      <span className="reservation-date">{formatDate(reservation.date)}</span>
-                    </div>
-                    <div className="reservation-details">
-                      <p><strong>Time:</strong> {reservation.time}</p>
-                      <p><strong>Phone:</strong> {reservation.phone}</p>
-                      <p><strong>Email:</strong> {reservation.email}</p>
-                      <p>
-                        <strong>Status:</strong>
-                        <span className={`status-${reservation.status.toLowerCase()}`}>
-                          {reservation.status}
-                        </span>
-                      </p>
-                      {reservation.status === 'canceled' && reservation.updatedAt && (
-                        <p className="cancellation-time">
-                          Cancelled on: {new Date(reservation.updatedAt).toLocaleString()}
-                        </p>
-                      )}
-                    </div>
-                    {reservation.status !== 'canceled' && (
-                      <button
-                        onClick={() => handleCancelClick(reservation._id)}
-                        className="cancel-reservation-btn"
-                        disabled={isCancelling && reservationToCancel === reservation._id}
-                      >
-                        {isCancelling && reservationToCancel === reservation._id ? (
-                          <span className="flex items-center justify-center">
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Cancelling...
-                          </span>
-                        ) : (
-                          "Cancel Reservation"
-                        )}
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="no-reservations">
-                <p>You don't have any reservations yet.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Reservation Form */}
-        <div className="banner">
-          <img src="/reservation.png" alt="res" />
-        </div>
-        <div className="banner">
-          <div className="reservation_form_box">
-            <h1>MAKE A RESERVATION</h1>
-            <p>For Further Questions, Please Call</p>
-            {!isAuthenticated && (
-              <div className="auth-required-notice">
-                <p>Please <button onClick={() => setShowAuthModal(true)}>login or signup</button> to make a reservation</p>
-              </div>
-            )}
-            {isAuthenticated && (
-              <div className="auth-success-notice">
-                <p>You are logged in as <strong>{userData?.name || userData?.email.split('@')[0]}</strong></p>
-              </div>
-            )}
-            <form>
-              <div>
-                <input
-                  type="text"
-                  placeholder="First Name *"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  disabled={!isAuthenticated}
-                />
-                <input
-                  type="text"
-                  placeholder="Last Name *"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  disabled={!isAuthenticated}
-                />
-              </div>
-              <div>
-                <input
-                  type="date"
-                  placeholder="Date *"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  disabled={!isAuthenticated}
-                />
-                <input
-                  type="time"
-                  placeholder="Time *"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  disabled={!isAuthenticated}
-                />
-              </div>
-              <div>
-                <input
-                  type="email"
-                  placeholder="Email *"
-                  className="email_tag"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={!isAuthenticated}
-                />
-                <input
-                  type="tel"
-                  placeholder="Phone *"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  disabled={!isAuthenticated}
-                />
-              </div>
-              <button
-                type="submit"
-                onClick={handleReservation}
-                className={!isAuthenticated ? "disabled-btn" : ""}
-                disabled={!isAuthenticated}
-              >
-                RESERVE NOW{" "}
-                <span>
-                  <HiOutlineArrowNarrowRight />
-                </span>
-              </button>
-            </form>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* CSS Styles */}
+      {/* ── Inline Styles ── */}
       <style jsx>{`
-        .container {
-          position: relative;
+
+        /* ══ Section ══ */
+        .reservation {
+          padding: 0 !important;
+          background: linear-gradient(135deg, #fdf6e3 0%, #fff8f0 60%, #fef9f0 100%);
         }
-        
-        /* Auth Modal Styles */
-        .auth-modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
+
+        /* ══ Hero 2-col grid ══ */
+        .res-hero {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          min-height: 100vh;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 100px 40px 60px;
+          gap: 60px;
           align-items: center;
-          z-index: 1000;
         }
-        
-        .auth-modal {
-          background-color: white;
-          border-radius: 8px;
-          padding: 2rem;
-          width: 90%;
-          max-width: 400px;
-          position: relative;
+
+        /* ══ Left Info Panel ══ */
+        .res-info { display: flex; flex-direction: column; gap: 24px; }
+
+        .res-info-badge {
+          display: inline-block;
+          width: fit-content;
+          padding: 6px 18px;
+          background: linear-gradient(135deg, #f8b400, #ff6b35);
+          color: #fff;
+          border-radius: 50px;
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
         }
-        
-        .close-modal {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          background: none;
-          border: none;
-          font-size: 1.5rem;
-          cursor: pointer;
+
+        .res-info-title {
+          font-size: clamp(2rem, 4vw, 3rem);
+          font-weight: 800;
+          color: #1a1a1a;
+          line-height: 1.15;
+          margin: 0;
+          font-family: 'Oswald', sans-serif;
         }
-        
-        .form-group {
-          margin-bottom: 1rem;
+
+        .res-info-title span { color: #f8b400; }
+
+        .res-info-desc {
+          font-size: 1rem;
+          color: #666;
+          line-height: 1.7;
+          max-width: 420px;
         }
-        
-        .form-group label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: bold;
+
+        .res-info-features {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
         }
-        
-        .form-group input {
-          width: 100%;
-          padding: 0.5rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
+
+        .res-feature {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 16px;
+          background: rgba(255,255,255,0.8);
+          border: 1px solid rgba(248,180,0,0.2);
+          border-radius: 10px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #444;
+          backdrop-filter: blur(10px);
         }
-        
-        .auth-submit {
-          width: 100%;
-          background-color: #f8b400;
-          color: white;
-          border: none;
-          padding: 0.75rem;
-          border-radius: 4px;
-          font-weight: bold;
-          cursor: pointer;
-          margin-top: 1rem;
-        }
-        
-        .auth-toggle {
-          text-align: center;
-          margin-top: 1rem;
-        }
-        
-        .toggle-btn {
-          background: none;
-          border: none;
+
+        .res-feature-icon { font-size: 1.2rem; }
+
+        .res-view-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          width: fit-content;
+          padding: 12px 24px;
+          background: linear-gradient(135deg, #1a1d2e, #2d3258);
           color: #f8b400;
+          border: 1px solid rgba(248,180,0,0.3);
+          border-radius: 10px;
+          font-size: 0.9rem;
+          font-weight: 700;
           cursor: pointer;
-          font-weight: bold;
+          transition: all 0.25s ease;
+          font-family: 'Inter', sans-serif;
         }
-        
+
+        .res-view-btn:hover {
+          background: linear-gradient(135deg, #f8b400, #ff6b35);
+          color: #fff;
+          border-color: transparent;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(248,180,0,0.35);
+        }
+
+        .res-view-badge {
+          background: #f8b400;
+          color: #1a1a1a;
+          border-radius: 50px;
+          padding: 2px 8px;
+          font-size: 0.75rem;
+          font-weight: 800;
+          min-width: 22px;
+          text-align: center;
+        }
+
+        /* ══ Right Form Card ══ */
+        .res-form-wrap { display: flex; justify-content: center; }
+
+        .res-form-card {
+          background: rgba(255,255,255,0.92);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(248,180,0,0.15);
+          border-radius: 24px;
+          padding: 40px 36px;
+          width: 100%;
+          max-width: 480px;
+          box-shadow: 0 20px 60px rgba(248,180,0,0.12), 0 4px 20px rgba(0,0,0,0.06);
+          transition: box-shadow 0.3s ease;
+        }
+
+        .res-form-card:hover {
+          box-shadow: 0 28px 70px rgba(248,180,0,0.18), 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        .res-form-header { margin-bottom: 24px; }
+        .res-form-header h2 {
+          font-size: 1.6rem;
+          font-weight: 800;
+          color: #1a1a1a;
+          margin: 0 0 4px;
+          font-family: 'Oswald', sans-serif;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .res-form-header p { font-size: 0.85rem; color: #888; margin: 0; }
+
         /* Notices */
-        .auth-required-notice {
-          background-color: #ffecb3;
-          padding: 1rem;
-          border-radius: 4px;
-          margin-bottom: 1rem;
-          text-align: center;
+        .res-notice {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 16px;
+          border-radius: 10px;
+          font-size: 0.85rem;
+          margin-bottom: 20px;
+          font-weight: 500;
         }
-        
-        .auth-success-notice {
-          background-color: #e8f5e9;
-          padding: 1rem;
-          border-radius: 4px;
-          margin-bottom: 1rem;
-          text-align: center;
-          border-left: 4px solid #4CAF50;
+        .res-notice--warn { background: #fff8e1; border: 1px solid #f8b40040; color: #7a5c00; }
+        .res-notice--ok   { background: #f0fdf4; border: 1px solid #22c55e40; color: #166534; }
+        .res-notice button {
+          background: none; border: none;
+          color: #f8b400; font-weight: 700; cursor: pointer; text-decoration: underline;
         }
-        
-        .auth-required-notice button {
-          background: none;
+
+        /* Form layout */
+        .res-form { display: flex; flex-direction: column; gap: 16px; }
+        .res-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        .res-field { display: flex; flex-direction: column; gap: 6px; }
+        .res-field label {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #555;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .res-field input {
+          padding: 11px 14px;
+          border: 1.5px solid #e5e7eb;
+          border-radius: 10px;
+          font-size: 0.9rem;
+          color: #1a1a1a;
+          background: #fafafa;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          outline: none;
+          font-family: 'Inter', sans-serif;
+        }
+        .res-field input:focus {
+          border-color: #f8b400;
+          box-shadow: 0 0 0 3px rgba(248,180,0,0.15);
+          background: #fff;
+        }
+        .res-field input:disabled {
+          background: #f3f4f6;
+          color: #aaa;
+          cursor: not-allowed;
+          border-color: #e5e7eb;
+        }
+
+        .res-submit-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          width: 100%;
+          padding: 14px;
+          background: linear-gradient(135deg, #f8b400, #ff6b35);
+          color: #fff;
           border: none;
-          color: #f8b400;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: 700;
+          letter-spacing: 0.5px;
           cursor: pointer;
-          font-weight: bold;
+          transition: all 0.25s ease;
+          margin-top: 4px;
+          font-family: 'Oswald', sans-serif;
+          text-transform: uppercase;
+          box-shadow: 0 4px 20px rgba(248,180,0,0.35);
         }
-        
-        /* Reservations List */
-        .user-reservations-container {
-          background-color: white;
-          border-radius: 8px;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-          margin-bottom: 2rem;
+        .res-submit-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 28px rgba(248,180,0,0.5);
+        }
+        .res-submit-btn--disabled {
+          background: #d1d5db !important;
+          color: #9ca3af !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          transform: none !important;
+        }
+
+        /* ══ Admin Card ══ */
+        .res-admin-card {
+          text-align: center;
+          border-top: 4px solid #f8b400;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+        }
+        .res-admin-icon { font-size: 3.5rem; animation: floatIcon 3s ease-in-out infinite; }
+        @keyframes floatIcon {
+          0%,100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        .res-admin-card h2 { font-size: 1.8rem; color: #1a1a1a; margin: 0; font-family: 'Oswald', sans-serif; }
+        .res-admin-card p { font-size: 0.9rem; color: #666; margin: 0; }
+        .res-admin-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+        .res-admin-primary {
+          padding: 12px 22px;
+          background: linear-gradient(135deg, #f8b400, #ff6b35);
+          color: #fff; border: none; border-radius: 10px;
+          font-size: 0.88rem; font-weight: 700; cursor: pointer;
+          transition: all 0.2s; font-family: 'Inter', sans-serif;
+          box-shadow: 0 4px 16px rgba(248,180,0,0.3);
+        }
+        .res-admin-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(248,180,0,0.4); }
+        .res-admin-secondary {
+          padding: 12px 22px;
+          background: linear-gradient(135deg, #1a1d2e, #2d3258);
+          color: #f8b400; border: 1px solid rgba(248,180,0,0.3);
+          border-radius: 10px; font-size: 0.88rem; font-weight: 700;
+          cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .res-admin-secondary:hover { background: linear-gradient(135deg, #2d3258, #3d4278); transform: translateY(-2px); }
+
+        /* ══ My Reservations Slide Panel ══ */
+        .res-panel-overlay {
+          position: fixed; inset: 0;
+          background: rgba(0,0,0,0.4);
+          backdrop-filter: blur(4px);
+          z-index: 1000;
+          display: flex; justify-content: flex-end;
+          animation: fadeIn 0.2s ease;
+        }
+        .res-panel {
+          width: 420px; max-width: 95vw;
+          background: #fff;
+          height: 100vh;
+          display: flex; flex-direction: column;
+          animation: slideInRight 0.3s ease;
           overflow: hidden;
         }
-        
-        .reservations-header {
-          background-color: #f8b400;
-          color: white;
-          padding: 1rem;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+        @keyframes slideInRight {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
         }
-        
-        .close-reservations {
-          background: none;
-          border: none;
-          color: white;
-          font-size: 1.5rem;
-          cursor: pointer;
+        .res-panel-header {
+          display: flex; justify-content: space-between; align-items: flex-start;
+          padding: 28px 24px 20px;
+          background: linear-gradient(135deg, #1a1d2e, #2d3258);
+          color: #fff;
+          flex-shrink: 0;
         }
-        
-        .reservations-list {
-          max-height: 400px;
-          overflow-y: auto;
-          padding: 1rem;
+        .res-panel-header h2 { font-size: 1.2rem; font-weight: 800; margin: 0 0 4px; color: #f8b400; }
+        .res-panel-header p { font-size: 0.8rem; color: #94a3b8; margin: 0; }
+        .res-panel-close {
+          background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+          color: #fff; border-radius: 8px; width: 34px; height: 34px;
+          cursor: pointer; font-size: 14px; transition: background 0.2s; flex-shrink: 0;
         }
-        
-        .reservation-card {
-          background-color: #f9f9f9;
-          border-radius: 4px;
-          padding: 1rem;
-          margin-bottom: 1rem;
+        .res-panel-close:hover { background: rgba(255,255,255,0.2); }
+        .res-panel-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+        /* Reservation Card */
+        .res-card {
+          border-radius: 14px; padding: 18px;
           border-left: 4px solid #f8b400;
+          background: #fafafa;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+          transition: transform 0.2s;
         }
-        
-        .reservation-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 0.5rem;
+        .res-card:hover { transform: translateY(-2px); }
+        .res-card--canceled { border-left-color: #ef4444; opacity: 0.75; }
+        .res-card--confirmed { border-left-color: #22c55e; }
+        .res-card--completed { border-left-color: #3b82f6; }
+
+        .res-card-top {
+          display: flex; justify-content: space-between; align-items: flex-start;
+          margin-bottom: 12px;
         }
-        
-        .reservation-details p {
-          margin: 0.3rem 0;
+        .res-card-top strong { display: block; font-weight: 700; color: #1a1a1a; font-size: 0.95rem; }
+        .res-card-date { font-size: 0.78rem; color: #888; white-space: nowrap; }
+
+        .res-status {
+          display: inline-flex; align-items: center; gap: 4px;
+          padding: 2px 8px; border-radius: 50px;
+          font-size: 0.7rem; font-weight: 700;
+          text-transform: capitalize; margin-top: 4px;
         }
-        
-        /* Status Styles */
-        .status-pending {
-          color: #ff9800;
-          font-weight: bold;
-          text-transform: capitalize;
-          margin-left: 5px;
+        .res-status--pending   { background: rgba(245,158,11,0.12); color: #d97706; }
+        .res-status--confirmed { background: rgba(34,197,94,0.12); color: #16a34a; }
+        .res-status--completed { background: rgba(59,130,246,0.12); color: #2563eb; }
+        .res-status--canceled  { background: rgba(239,68,68,0.12); color: #dc2626; }
+
+        .res-card-details { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .res-card-details span {
+          font-size: 0.78rem; color: #555;
+          background: #f1f5f9; border-radius: 6px; padding: 3px 8px;
         }
 
-        .status-confirmed {
-          color: #4CAF50;
-          font-weight: bold;
-          text-transform: capitalize;
-          margin-left: 5px;
-        }
+        .res-card-cancelled-on { font-size: 0.75rem; color: #aaa; font-style: italic; margin: 0 0 8px; }
 
-        .status-canceled {
-          color: #f44336;
-          font-weight: bold;
-          text-transform: capitalize;
-          margin-left: 5px;
-          text-decoration: line-through;
+        .res-cancel-btn {
+          width: 100%; padding: 9px;
+          background: rgba(239,68,68,0.08); color: #dc2626;
+          border: 1px solid rgba(239,68,68,0.2);
+          border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+          cursor: pointer; transition: all 0.2s;
         }
+        .res-cancel-btn:hover { background: #ef4444; color: #fff; }
+        .res-cancel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .cancellation-time {
-          color: #888;
-          font-size: 0.9rem;
-          margin-top: 5px;
-          font-style: italic;
+        /* Empty & Spinner */
+        .res-empty { text-align: center; padding: 60px 20px; color: #aaa; }
+        .res-empty-icon { font-size: 3rem; margin-bottom: 12px; }
+        .res-empty p { font-size: 1rem; color: #666; margin: 0 0 4px; font-weight: 600; }
+        .res-empty span { font-size: 0.85rem; color: #aaa; }
+
+        .res-spinner-wrap { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 60px 0; color: #888; }
+        .res-spinner {
+          width: 28px; height: 28px; border: 3px solid rgba(248,180,0,0.2);
+          border-top-color: #f8b400; border-radius: 50%;
+          animation: spin 0.8s linear infinite;
         }
-        
-        /* Cancel Button */
-        .cancel-reservation-btn {
-          background-color: #ff4444;
-          color: white;
-          border: none;
-          padding: 0.5rem 1rem;
-          border-radius: 4px;
-          margin-top: 0.5rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ══ Modals ══ */
+        .rmodal-overlay {
+          position: fixed; inset: 0;
+          background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+          display: flex; align-items: center; justify-content: center;
+          z-index: 2000; animation: fadeIn 0.2s ease;
         }
-        
-        .cancel-reservation-btn:hover {
-          background-color: #cc0000;
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .rmodal {
+          background: #fff; border-radius: 20px; padding: 36px 32px;
+          width: 90%; max-width: 420px; text-align: center;
+          position: relative; animation: modalPop 0.25s ease;
         }
-        
-        /* Confirmation Modal */
-        .confirmation-modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
+        .rmodal--sm { max-width: 340px; }
+        @keyframes modalPop {
+          from { transform: scale(0.9); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
         }
-        
-        .confirmation-modal {
-          background-color: white;
-          border-radius: 8px;
-          padding: 2rem;
-          width: 90%;
-          max-width: 400px;
+        .rmodal-close {
+          position: absolute; top: 16px; right: 16px;
+          background: #f3f4f6; border: none; border-radius: 8px;
+          width: 32px; height: 32px; cursor: pointer; font-size: 13px;
+          color: #666; transition: background 0.2s;
         }
-        
-        .modal-buttons {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 1rem;
+        .rmodal-close:hover { background: #e5e7eb; }
+        .rmodal-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .rmodal h2 { font-size: 1.3rem; font-weight: 800; color: #1a1a1a; margin: 0 0 6px; }
+        .rmodal p { font-size: 0.85rem; color: #888; margin: 0 0 24px; }
+
+        .rmodal-form { text-align: left; display: flex; flex-direction: column; gap: 14px; }
+        .rmodal-field { display: flex; flex-direction: column; gap: 5px; }
+        .rmodal-field label { font-size: 0.75rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+        .rmodal-field input {
+          padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+          font-size: 0.9rem; outline: none; transition: border-color 0.2s;
         }
-        
-        .confirm-btn {
-          background-color: #ff4444;
-          color: white;
-          border: none;
-          padding: 0.5rem 1rem;
-          border-radius: 4px;
-          cursor: pointer;
+        .rmodal-field input:focus { border-color: #f8b400; box-shadow: 0 0 0 3px rgba(248,180,0,0.12); }
+
+        .rmodal-submit {
+          width: 100%; padding: 12px;
+          background: linear-gradient(135deg, #f8b400, #ff6b35);
+          color: #fff; border: none; border-radius: 10px;
+          font-size: 0.95rem; font-weight: 700; cursor: pointer;
+          transition: all 0.2s; margin-top: 6px;
+          box-shadow: 0 4px 16px rgba(248,180,0,0.3);
         }
-        
-        .modal-buttons .cancel-btn {
-          background-color: #f8b400;
-          color: white;
+        .rmodal-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(248,180,0,0.4); }
+
+        .rmodal-toggle { font-size: 0.82rem; color: #888; margin-top: 16px; }
+        .rmodal-toggle button { background: none; border: none; color: #f8b400; font-weight: 700; cursor: pointer; }
+
+        .rmodal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 8px; }
+        .rmodal-danger {
+          padding: 10px 22px; background: #ef4444; color: #fff;
+          border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+          transition: all 0.2s;
         }
-        
-        /* Disabled State */
-        .disabled-btn {
-          opacity: 0.6;
-          cursor: not-allowed;
+        .rmodal-danger:hover { background: #dc2626; }
+        .rmodal-ghost {
+          padding: 10px 22px; background: #f3f4f6; color: #555;
+          border: 1px solid #e5e7eb; border-radius: 8px; font-weight: 600; cursor: pointer;
+          transition: background 0.2s;
         }
-        
-        input:disabled {
-          background-color: #f2f2f2;
-          cursor: not-allowed;
+        .rmodal-ghost:hover { background: #e5e7eb; }
+
+        /* ══ Responsive ══ */
+        @media (max-width: 900px) {
+          .res-hero { grid-template-columns: 1fr; padding: 100px 24px 48px; gap: 40px; }
+          .res-form-card { max-width: 100%; }
+          .res-info-title { font-size: 2rem; }
+        }
+        @media (max-width: 480px) {
+          .res-form-row { grid-template-columns: 1fr; }
+          .res-form-card { padding: 28px 20px; }
         }
       `}</style>
     </section>
@@ -793,3 +949,4 @@ const Reservation = () => {
 };
 
 export default Reservation;
+

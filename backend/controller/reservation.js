@@ -8,15 +8,15 @@ import { User } from "../models/User.js";
 export const isAuthenticated = async (req, res, next) => {
   try {
     const { token } = req.cookies;
-    
+
     if (!token) {
       return next(new ErrorHandler("Please login to access this resource", 401));
     }
-    
+
     const decodedData = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     req.user = await User.findById(decodedData.id);
-    
+
     next();
   } catch (error) {
     return next(new ErrorHandler("Authentication failed", 401));
@@ -25,12 +25,12 @@ export const isAuthenticated = async (req, res, next) => {
 
 const send_reservation = async (req, res, next) => {
   const { firstName, lastName, email, date, time, phone } = req.body;
-  
+
   // Check if all required fields are provided
   if (!firstName || !lastName || !email || !date || !time || !phone) {
     return next(new ErrorHandler("Please Fill Full Reservation Form!", 400));
   }
-  
+
   try {
     // Associate reservation with the logged-in user
     const reservation = await Reservation.create({
@@ -42,7 +42,7 @@ const send_reservation = async (req, res, next) => {
       phone,
       user: req.user._id // Associate reservation with user
     });
-    
+
     res.status(201).json({
       success: true,
       message: "Reservation Sent Successfully!",
@@ -54,7 +54,7 @@ const send_reservation = async (req, res, next) => {
       const validationErrors = Object.values(error.errors).map(err => err.message);
       return next(new ErrorHandler(validationErrors.join(', '), 400));
     }
-    
+
     // Handle other errors
     return next(error);
   }
@@ -77,13 +77,13 @@ export const cancelReservation = async (req, res, next) => {
         user: req.user._id,
         status: { $ne: 'canceled' } // Only find if not already canceled
       },
-      { 
-        $set: { 
+      {
+        $set: {
           status: 'canceled',
-          updatedAt: new Date() 
-        } 
+          updatedAt: new Date()
+        }
       },
-      { 
+      {
         new: true, // Return the updated document
         runValidators: true // Run schema validators on update
       }
@@ -91,7 +91,7 @@ export const cancelReservation = async (req, res, next) => {
 
     if (!reservation) {
       return next(new ErrorHandler(
-        "Reservation not found, already canceled, or you don't have permission", 
+        "Reservation not found, already canceled, or you don't have permission",
         404
       ));
     }
@@ -138,41 +138,41 @@ export const cancelReservation = async (req, res, next) => {
 
 export const signup = async (req, res, next) => {
   const { name, email, password } = req.body;
-  
+
   if (!name || !email || !password) {
     return next(new ErrorHandler("Please provide all required fields", 400));
   }
-  
+
   try {
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return next(new ErrorHandler("User with this email already exists", 409));
     }
-    
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     // Create new user
     const user = await User.create({
       name,
       email,
       password: hashedPassword
     });
-    
+
     // Generate JWT token
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-    
+
     // Set cookie options
     const options = {
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
       httpOnly: true
     };
-    
+
     // Send response with token in cookie
     res.status(201)
       .cookie("token", token, options)
@@ -182,7 +182,8 @@ export const signup = async (req, res, next) => {
         user: {
           id: user._id,
           name: user.name,
-          email: user.email
+          email: user.email,
+          role: user.role
         }
       });
   } catch (error) {
@@ -190,47 +191,47 @@ export const signup = async (req, res, next) => {
       const validationErrors = Object.values(error.errors).map(err => err.message);
       return next(new ErrorHandler(validationErrors.join(', '), 400));
     }
-    
+
     return next(error);
   }
 };
 
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
-  
+
   if (!email || !password) {
     return next(new ErrorHandler("Please provide email and password", 400));
   }
-  
+
   try {
     // Find user by email
     const user = await User.findOne({ email }).select("+password");
-    
+
     // Check if user exists
     if (!user) {
       return next(new ErrorHandler("Invalid email or password", 401));
     }
-    
+
     // Compare passwords
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    
+
     if (!isPasswordValid) {
       return next(new ErrorHandler("Invalid email or password", 401));
     }
-    
+
     // Generate JWT token
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-    
+
     // Set cookie options
     const options = {
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
       httpOnly: true
     };
-    
+
     // Send response with token in cookie
     res.status(200)
       .cookie("token", token, options)
@@ -240,7 +241,8 @@ export const login = async (req, res, next) => {
         user: {
           id: user._id,
           name: user.name,
-          email: user.email
+          email: user.email,
+          role: user.role
         }
       });
   } catch (error) {
@@ -252,7 +254,7 @@ export const login = async (req, res, next) => {
 export const getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
-    
+
     res.status(200).json({
       success: true,
       user
@@ -269,7 +271,7 @@ export const logout = async (req, res, next) => {
       expires: new Date(Date.now()),
       httpOnly: true
     });
-    
+
     res.status(200).json({
       success: true,
       message: "Logged out successfully"
@@ -284,7 +286,7 @@ export const getUserReservations = async (req, res, next) => {
   try {
     // Find all reservations where the user field matches the currently logged in user's ID
     const reservations = await Reservation.find({ user: req.user._id });
-    
+
     // Check if any reservations were found
     if (reservations.length === 0) {
       return res.status(200).json({
@@ -293,12 +295,109 @@ export const getUserReservations = async (req, res, next) => {
         reservations: []
       });
     }
-    
+
     // Return the reservations
     res.status(200).json({
       success: true,
       count: reservations.length,
       reservations
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// ========== ADMIN MIDDLEWARE ==========
+export const isAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return next(new ErrorHandler('Access denied. Admins only.', 403));
+  }
+  next();
+};
+
+// ========== ADMIN CONTROLLERS ==========
+
+// Get all reservations (admin)
+export const getAllReservations = async (req, res, next) => {
+  try {
+    const reservations = await Reservation.find()
+      .populate('user', 'name email role')
+      .sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      count: reservations.length,
+      reservations
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Update reservation status (admin)
+export const updateReservationStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const allowed = ['pending', 'confirmed', 'completed', 'canceled'];
+    if (!allowed.includes(status)) {
+      return next(new ErrorHandler('Invalid status value', 400));
+    }
+    const reservation = await Reservation.findByIdAndUpdate(
+      req.params.id,
+      { status, updatedAt: Date.now() },
+      { new: true, runValidators: true }
+    ).populate('user', 'name email');
+    if (!reservation) {
+      return next(new ErrorHandler('Reservation not found', 404));
+    }
+    res.status(200).json({ success: true, message: 'Status updated', reservation });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Delete reservation (admin)
+export const deleteReservation = async (req, res, next) => {
+  try {
+    const reservation = await Reservation.findByIdAndDelete(req.params.id);
+    if (!reservation) {
+      return next(new ErrorHandler('Reservation not found', 404));
+    }
+    res.status(200).json({ success: true, message: 'Reservation deleted successfully' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Get all users (admin)
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, count: users.length, users });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Get dashboard stats (admin)
+export const getDashboardStats = async (req, res, next) => {
+  try {
+    const [total, pending, confirmed, completed, canceled, totalUsers] = await Promise.all([
+      Reservation.countDocuments(),
+      Reservation.countDocuments({ status: 'pending' }),
+      Reservation.countDocuments({ status: 'confirmed' }),
+      Reservation.countDocuments({ status: 'completed' }),
+      Reservation.countDocuments({ status: 'canceled' }),
+      User.countDocuments()
+    ]);
+    // Recent 5 reservations
+    const recent = await Reservation.find()
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .limit(5);
+    res.status(200).json({
+      success: true,
+      stats: { total, pending, confirmed, completed, canceled, totalUsers },
+      recent
     });
   } catch (error) {
     return next(error);

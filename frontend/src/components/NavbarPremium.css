@@ -1,0 +1,466 @@
+/* ============================================================
+   PREMIUM NAVBAR — Glassmorphism + Admin Button + Login/Signup
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.navbar-premium {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 40px;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    overflow: visible;
+}
+
+.navbar-scrolled {
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.10);
+    padding: 10px 40px;
+}
+
+/* ── Brand ── */
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.brand-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.brand-text {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #1a1a1a;
+    font-family: 'Oswald', sans-serif;
+}
+
+.brand-accent {
+    color: #f8b400;
+}
+
+/* ── Desktop links group ── */
+.nav-links-desktop {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.nav-links-list {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.nav-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    color: #555;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-decoration: none;
+    display: block;
+}
+
+.nav-link:hover {
+    color: #f8b400;
+    background: rgba(248, 180, 0, 0.08);
+}
+
+/* ── Actions group ── */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ── Admin button GROUP (shown only when admin logged in) ── */
+.nav-admin-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: rgba(248, 180, 0, 0.06);
+    border: 1px solid rgba(248, 180, 0, 0.18);
+    border-radius: 10px;
+}
+
+.nav-admin-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #f8b400;
+    text-transform: uppercase;
+    padding-right: 4px;
+    border-right: 1px solid rgba(248, 180, 0, 0.25);
+    margin-right: 2px;
+    white-space: nowrap;
+}
+
+/* Reservations variant — slightly teal tint */
+.nav-btn-admin--reservations {
+    background: linear-gradient(135deg, #0f2027, #1a2a3a) !important;
+    color: #38bdf8 !important;
+    border-color: rgba(56, 189, 248, 0.25) !important;
+}
+
+.nav-btn-admin--reservations:hover {
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3) !important;
+}
+
+/* Users variant — purple tint */
+.nav-btn-admin--users {
+    background: linear-gradient(135deg, #1a0b2e, #2d1458) !important;
+    color: #a78bfa !important;
+    border-color: rgba(167, 139, 250, 0.25) !important;
+}
+
+.nav-btn-admin--users:hover {
+    background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 15px rgba(167, 139, 250, 0.35) !important;
+}
+
+.nav-user-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-user-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #444;
+    white-space: nowrap;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Admin button (dark gold) ── */
+.nav-btn-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #1a1d2e, #2d3258);
+    color: #f8b400;
+    border: 1px solid rgba(248, 180, 0, 0.3);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.nav-btn-admin:hover {
+    background: linear-gradient(135deg, #f8b400, #ff6b35);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 15px rgba(248, 180, 0, 0.35);
+    transform: translateY(-1px);
+}
+
+/* ── Outline button (Login / Logout) ── */
+.nav-btn-outline {
+    padding: 7px 18px;
+    background: transparent;
+    color: #333;
+    border: 1.5px solid #333;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.nav-btn-outline:hover {
+    background: #1a1a1a;
+    color: #fff;
+    border-color: #1a1a1a;
+    transform: translateY(-1px);
+}
+
+/* ── Primary button (Sign Up) ── */
+.nav-btn-primary {
+    padding: 8px 18px;
+    background: linear-gradient(135deg, #f8b400, #ff6b35);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    box-shadow: 0 3px 12px rgba(248, 180, 0, 0.3);
+}
+
+.nav-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(248, 180, 0, 0.4);
+    opacity: 0.92;
+}
+
+/* ── Hamburger ── */
+.nav-hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: #333;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.nav-hamburger:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* ── Mobile overlay ── */
+.nav-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(3px);
+    z-index: 998;
+}
+
+/* ── Hero offset for fixed navbar ── */
+.heroSection {
+    padding-top: 88px !important;
+}
+
+/* ── Smooth scroll target offset for all sections ── */
+.about,
+.qualities,
+.menu,
+.team,
+.who_are_we,
+.reservation {
+    scroll-margin-top: 80px;
+}
+
+/* ── Qualities card hover lift ── */
+.qualities .container .card {
+    transition: transform 0.3s ease;
+    border-radius: 12px;
+}
+
+.qualities .container .card:hover {
+    transform: translateY(-6px);
+}
+
+/* ── Menu card hover lift ── */
+.menu .container .dishes_container .card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.menu .container .dishes_container .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.13);
+}
+
+/* ── Premium dark footer ── */
+footer {
+    background: linear-gradient(135deg, #1a1d2e 0%, #111420 100%) !important;
+}
+
+footer .container .banner:first-child .left {
+    color: #f8b400 !important;
+}
+
+footer .container .banner .right p,
+footer .container .banner:last-child .left p,
+footer .container .banner:last-child .left {
+    color: #94a3b8 !important;
+}
+
+footer .container .banner:first-child::after {
+    background: rgba(255, 255, 255, 0.08) !important;
+    height: 1px !important;
+}
+
+/* ── Reservation form box elevated shadow ── */
+.reservation .container .banner .reservation_form_box {
+    border-radius: 16px;
+    transition: box-shadow 0.3s ease;
+}
+
+.reservation .container .banner .reservation_form_box:hover {
+    box-shadow: 0 20px 60px rgba(152, 87, 191, 0.3);
+}
+
+/* ── Mobile: side-drawer menu ── */
+@media (max-width: 1100px) {
+    .navbar-premium {
+        padding: 12px 20px;
+    }
+
+    .navbar-scrolled {
+        padding: 10px 20px;
+    }
+
+    .nav-hamburger {
+        display: flex;
+    }
+
+    .nav-links-desktop {
+        position: fixed;
+        top: 0;
+        right: -320px;
+        width: 300px;
+        height: 100vh;
+        background: #fff;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 80px 24px 30px;
+        gap: 20px;
+        z-index: 999;
+        box-shadow: -8px 0 30px rgba(0, 0, 0, 0.15);
+        transition: right 0.3s ease;
+        overflow-y: auto;
+    }
+
+    .nav-links-desktop.nav-mobile-open {
+        right: 0;
+    }
+
+    .nav-links-list {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        gap: 4px;
+    }
+
+    .nav-link {
+        font-size: 0.9rem;
+        padding: 10px 12px;
+        width: 100%;
+    }
+
+    .nav-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .nav-user-group {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .nav-btn-admin,
+    .nav-btn-outline,
+    .nav-btn-primary {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+        padding: 12px 16px;
+    }
+
+    .nav-user-name {
+        max-width: 100%;
+        padding: 4px 12px;
+        background: rgba(248, 180, 0, 0.08);
+        border-radius: 6px;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 650px) {
+    .heroSection {
+        padding-top: 75px !important;
+    }
+}
+
+/* ── Hero CTA Buttons ── */
+.hero-cta-group {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-top: 32px;
+    flex-wrap: wrap;
+}
+
+.hero-cta-primary {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #f8b400, #ff6b35);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Inter', 'Oswald', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    box-shadow: 0 6px 24px rgba(248, 180, 0, 0.4);
+    transition: all 0.3s ease;
+}
+
+.hero-cta-primary:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(248, 180, 0, 0.5);
+}
+
+.hero-cta-secondary {
+    padding: 13px 28px;
+    background: transparent;
+    color: #333;
+    border: 2px solid #333;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: 'Inter', 'Oswald', sans-serif;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.hero-cta-secondary:hover {
+    background: #1a1a1a;
+    color: #fff;
+    border-color: #1a1a1a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}

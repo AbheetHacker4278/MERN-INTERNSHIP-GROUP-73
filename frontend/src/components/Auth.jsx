@@ -27,7 +27,7 @@ export const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("https://mern-internship-group-73-1.onrender.com/api/login", formData, {
+      const response = await axios.post("/api/login", formData, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -39,7 +39,12 @@ export const Login = () => {
         localStorage.setItem("user", JSON.stringify(response.data.user));
         toast.success("Successfully Login")
         setLoading(false);
-        navigate("/"); // Redirect to home page
+        // Redirect admins to the admin dashboard
+        if (response.data.user?.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/"); // Redirect to home page
+        }
       }
     } catch (error) {
       setLoading(false);
@@ -125,7 +130,7 @@ export const Signup = () => {
 
     try {
       const response = await axios.post(
-        "https://mern-internship-group-73-1.onrender.com/api/signup",
+        "/api/signup",
         {
           name: formData.name,
           email: formData.email,

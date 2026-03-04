@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Navbar from "./Navbar";
+import { Link } from "react-scroll";
 
 const HeroSection = () => {
   return (
@@ -67,6 +68,21 @@ const HeroSection = () => {
                 transition={{ duration: 1 }}
               />
             </div>
+          </motion.div>
+
+          {/* CTA Buttons */}
+          <motion.div
+            className="hero-cta-group"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.4, duration: 0.6 }}
+          >
+            <Link to="reservation" smooth duration={600} offset={-80}>
+              <button className="hero-cta-primary">🍽️ Reserve a Table</button>
+            </Link>
+            <Link to="menu" smooth duration={600} offset={-80}>
+              <button className="hero-cta-secondary">Explore Menu ↓</button>
+            </Link>
           </motion.div>
         </motion.div>
 
