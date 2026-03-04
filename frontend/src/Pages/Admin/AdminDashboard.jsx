@@ -209,7 +209,7 @@ const AdminDashboard = () => {
     // ── Render ───────────────────────────────────────────────────────────────
     if (!authChecked) {
         return (
-            <div className="admin-loading" style={{ minHeight: "100vh", background: "#0f1117" }}>
+            <div className="admin-loading" style={{ minHeight: "100vh", background: "#f5f6fa" }}>
                 <div className="admin-spinner" />
                 <span>Authenticating…</span>
             </div>
@@ -223,15 +223,19 @@ const AdminDashboard = () => {
             {/* ── Sidebar ── */}
             <aside className="admin-sidebar">
                 <div className="admin-sidebar-brand">
-                    <h2>🍽️ Admin Panel</h2>
-                    <p>Restaurant Management</p>
+                    <div className="admin-brand-icon">🍽️</div>
+                    <div>
+                        <h2>Admin Panel</h2>
+                        <p>RestroBook</p>
+                    </div>
                 </div>
 
                 <nav className="admin-nav">
+                    <div className="admin-nav-section-label">Main Menu</div>
                     {[
                         { id: "overview", icon: "📊", label: "Overview" },
-                        { id: "reservations", icon: "📅", label: "Reservations" },
-                        { id: "users", icon: "👥", label: "Users" },
+                        { id: "reservations", icon: "📅", label: "Reservations", badge: reservations.length },
+                        { id: "users", icon: "👥", label: "Users", badge: users.length },
                     ].map((item) => (
                         <button
                             key={item.id}
@@ -239,14 +243,25 @@ const AdminDashboard = () => {
                             onClick={() => setActiveTab(item.id)}
                         >
                             <span className="nav-icon">{item.icon}</span>
-                            {item.label}
+                            <span className="nav-label">{item.label}</span>
+                            {item.badge > 0 && <span className="nav-badge">{item.badge}</span>}
                         </button>
                     ))}
                 </nav>
 
                 <div className="admin-sidebar-footer">
+                    <div className="admin-user-card">
+                        <div className="admin-avatar">
+                            {(adminUser.name || adminUser.email || "A")[0].toUpperCase()}
+                        </div>
+                        <div className="admin-user-info">
+                            <strong>{adminUser.name || "Admin"}</strong>
+                            <span>{adminUser.email}</span>
+                        </div>
+                        <div className="admin-online-dot" />
+                    </div>
                     <button className="admin-logout-btn" onClick={handleLogout}>
-                        <span className="nav-icon">🚪</span> Logout
+                        🚪 Logout
                     </button>
                 </div>
             </aside>
@@ -255,15 +270,22 @@ const AdminDashboard = () => {
             <main className="admin-main">
                 {/* Topbar */}
                 <div className="admin-topbar">
-                    <h1>
-                        {activeTab === "overview" && "Dashboard Overview"}
-                        {activeTab === "reservations" && "Manage Reservations"}
-                        {activeTab === "users" && "All Users"}
-                    </h1>
+                    <div className="admin-topbar-left">
+                        <h1>
+                            {activeTab === "overview" && "Dashboard Overview"}
+                            {activeTab === "reservations" && "Manage Reservations"}
+                            {activeTab === "users" && "All Users"}
+                        </h1>
+                        <p>
+                            {activeTab === "overview" && "Welcome back, manage your restaurant from here"}
+                            {activeTab === "reservations" && `${reservations.length} total bookings`}
+                            {activeTab === "users" && `${users.length} registered users`}
+                        </p>
+                    </div>
                     <div className="admin-topbar-right">
-                        <span className="admin-user-badge">
-                            👤 {adminUser.name || adminUser.email}
-                        </span>
+                        <div className="admin-topbar-badge">
+                            🛡️ {adminUser.name || adminUser.email?.split("@")[0]}
+                        </div>
                     </div>
                 </div>
 
@@ -274,7 +296,7 @@ const AdminDashboard = () => {
                     {activeTab === "overview" && (
                         <>
                             {/* Stats */}
-                            <div className="admin-stats-grid">
+                            <div className="stats-grid">
                                 {[
                                     { cls: "total", icon: "📋", label: "Total Bookings", val: stats?.total },
                                     { cls: "pending", icon: "⏳", label: "Pending", val: stats?.pending },
@@ -328,10 +350,10 @@ const AdminDashboard = () => {
                                                 {reservations.slice(0, 5).map((r) => (
                                                     <tr key={r._id}>
                                                         <td>
-                                                            <div style={{ fontWeight: 600, color: "#f1f5f9" }}>
+                                                            <div style={{ fontWeight: 600 }}>
                                                                 {r.firstName} {r.lastName}
                                                             </div>
-                                                            <div style={{ fontSize: "0.78rem", color: "#64748b" }}>{r.email}</div>
+                                                            <div style={{ fontSize: "0.78rem", color: "#94a3b8" }}>{r.email}</div>
                                                         </td>
                                                         <td>{formatDate(r.date)}</td>
                                                         <td>{r.time}</td>
@@ -399,16 +421,16 @@ const AdminDashboard = () => {
                                             {filteredReservations.map((r) => (
                                                 <tr key={r._id}>
                                                     <td>
-                                                        <div style={{ fontWeight: 600, color: "#f1f5f9" }}>
+                                                        <div style={{ fontWeight: 600 }}>
                                                             {r.firstName} {r.lastName}
                                                         </div>
-                                                        <div style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                                                        <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
                                                             {r.user?.email || r.email}
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div>{r.email}</div>
-                                                        <div style={{ fontSize: "0.78rem", color: "#64748b" }}>{r.phone}</div>
+                                                        <div style={{ fontSize: "0.78rem", color: "#94a3b8" }}>{r.phone}</div>
                                                     </td>
                                                     <td>{formatDate(r.date)}</td>
                                                     <td>{r.time}</td>
@@ -468,22 +490,19 @@ const AdminDashboard = () => {
                                         <tbody>
                                             {users.map((u) => (
                                                 <tr key={u._id}>
-                                                    <td>
-                                                        <span
-                                                            className="user-avatar"
-                                                            style={{ fontSize: "0.75rem" }}
-                                                        >
+                                                    <td style={{ display: "flex", alignItems: "center" }}>
+                                                        <span className="user-avatar">
                                                             {(u.name || u.email || "?")[0].toUpperCase()}
                                                         </span>
-                                                        <span style={{ fontWeight: 600, color: "#f1f5f9" }}>
+                                                        <span style={{ fontWeight: 600 }}>
                                                             {u.name || "—"}
                                                         </span>
                                                     </td>
-                                                    <td style={{ color: "#94a3b8" }}>{u.email}</td>
+                                                    <td>{u.email}</td>
                                                     <td>
                                                         <span className={`role-badge ${u.role}`}>{u.role}</span>
                                                     </td>
-                                                    <td style={{ color: "#64748b" }}>{formatDate(u.createdAt)}</td>
+                                                    <td>{formatDate(u.createdAt)}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -493,32 +512,34 @@ const AdminDashboard = () => {
                         </div>
                     )}
                 </div>
-            </main>
+            </main >
 
             {/* ── Delete Confirmation Modal ── */}
-            {deleteTarget && (
-                <div className="admin-modal-overlay" onClick={() => setDeleteTarget(null)}>
-                    <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
-                        <h3>🗑️ Delete Reservation</h3>
-                        <p>
-                            This action is <strong>permanent</strong> and cannot be undone.
-                            <br />Are you sure you want to delete this reservation?
-                        </p>
-                        <div className="admin-modal-btns">
-                            <button className="btn-confirm" onClick={handleDelete}>
-                                Yes, Delete
-                            </button>
-                            <button
-                                className="btn-cancel-modal"
-                                onClick={() => setDeleteTarget(null)}
-                            >
-                                Cancel
-                            </button>
+            {
+                deleteTarget && (
+                    <div className="admin-modal-overlay" onClick={() => setDeleteTarget(null)}>
+                        <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+                            <h3>🗑️ Delete Reservation</h3>
+                            <p>
+                                This action is <strong>permanent</strong> and cannot be undone.
+                                <br />Are you sure you want to delete this reservation?
+                            </p>
+                            <div className="admin-modal-btns">
+                                <button className="btn-confirm" onClick={handleDelete}>
+                                    Yes, Delete
+                                </button>
+                                <button
+                                    className="btn-cancel-modal"
+                                    onClick={() => setDeleteTarget(null)}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

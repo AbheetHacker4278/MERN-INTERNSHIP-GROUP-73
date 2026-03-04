@@ -29,19 +29,22 @@
 
 ### 🛡️ Admin Features
 - 🔑 **Admin Login** — Separate, role-protected admin access
-- 📊 **Dashboard Overview** — Stats cards: Total, Pending, Confirmed, Completed, Cancelled, Users
-- 📅 **All Reservations** — Search, filter by status, sort by any column, update status, delete
-- 👥 **All Users** — View all registered users with their roles and join dates
-- 🚫 **No-Booking Policy** — Admins cannot make reservations (UI enforced)
-- 🔗 **Deep-linking** — Navbar links jump directly to specific admin tabs via `?tab=`
+- 📊 **Dashboard Overview** — Stats cards (Total, Pending, Confirmed, Completed, Cancelled, Users) with colour-coded top borders
+- 📅 **All Reservations** — Search, filter by status, sort by any column, inline status update, delete with confirmation
+- 👥 **All Users** — View all registered users with role badges and join dates
+- 🚫 **No-Booking Policy** — Admins cannot make reservations (UI redirects to management view)
+- 🔗 **Deep-linking** — Navbar & sidebar links jump directly to specific tabs via `?tab=reservations` / `?tab=users`
+- 🔢 **Live Badges** — Sidebar nav items show live counts of reservations and users
 
 ### 🎨 UI/UX Highlights
 - **Glassmorphism Navbar** — Frosted glass effect with scroll-depth transition
-- **Premium Reservation Section** — 2-column hero layout with glassmorphism form card
-- **Admin Dark Theme** — Deep navy/dark premium dashboard
+- **All-Admin Navbar Buttons** — When admin is logged in: ⚙️ Dashboard, 📋 All Reservations, 👥 All Users shown as a grouped gold-labelled section
+- **Premium Reservation Section** — 2-column hero layout (info panel + glassmorphism form card), slide-in "My Reservations" drawer from the right
+- **Slide-in Reservation Panel** — Colour-coded booking cards (⏳ Pending, ✅ Confirmed, 🎉 Completed, ❌ Cancelled)
+- **Premium Light Admin Dashboard** — White sidebar with gold accent bar, orange gradient brand icon, section label, live count badges, user profile card with green online dot
+- **Coloured Stat Cards** — Each stat card has a distinct colour-coded top border stripe
 - **Responsive Design** — Mobile-first with hamburger drawer navigation
-- **Smooth Animations** — framer-motion, slide-in panels, modal pop animations
-- **Color-coded Status Badges** — ⏳ Pending, ✅ Confirmed, 🎉 Completed, ❌ Cancelled
+- **Smooth Animations** — Slide-in panels, modal pop animations, hover lifts
 
 ---
 
@@ -227,15 +230,24 @@ Output:
 
 Navigate to **http://localhost:5173/admin** after logging in as admin.
 
+### Sidebar
+| Element | Details |
+|---------|---------|
+| **Brand Icon** | Orange gradient 🍽️ tile with "Admin Panel" + "RestroBook" |
+| **MAIN MENU** | Section label above nav items |
+| **Nav badges** | Live counts on Reservations & Users items |
+| **User card** | Avatar, name, email, green online dot at bottom |
+| **Logout** | Red outlined button in footer |
+
 ### Tabs
 | Tab | Features |
 |-----|----------|
-| **📊 Overview** | Stats cards (Total, Pending, Confirmed, Completed, Cancelled, Users) + recent bookings |
-| **📅 Reservations** | Full table with search, filter by status, sort columns, inline status update, delete |
-| **👥 Users** | All registered users with role badges |
+| **📊 Overview** | Colour-striped stat cards + recent bookings table with View All button |
+| **📅 Reservations** | Full table with search, filter by status, sort columns, inline status dropdown, delete |
+| **👥 Users** | All registered users with gold Admin / blue User role badges |
 
 ### Quick Access from Navbar
-When logged in as admin, the navbar shows 3 quick-jump buttons:
+When logged in as admin, the navbar shows 3 grouped buttons:
 - ⚙️ **Dashboard** → `/admin`
 - 📋 **All Reservations** → `/admin?tab=reservations`
 - 👥 **All Users** → `/admin?tab=users`
